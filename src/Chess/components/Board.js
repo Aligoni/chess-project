@@ -1,5 +1,5 @@
-import React from "react"
-import { View, StyleSheet } from 'react-native';
+import React, {useState, useEffect} from "react"
+import { View, StyleSheet, Animated, Dimensions, Image } from 'react-native';
 import Square from "./Square"
 import links from "../routines/Links"
 
@@ -16,6 +16,24 @@ function createArray(length) {
 }
 
 function Board(props) {
+    const [animate, setAnimate] = useState(new Animated.ValueXY({ x: 0, y: 0 }))
+
+    useEffect(() => {
+        if (props.animation) {
+
+        }
+
+        Animated.timing(animate, {
+            toValue: { x: boxSize * 2, y: boxSize * 2},
+            duration: 500,
+            useNativeDriver: true,
+        }).start();
+
+
+        return function cleanup() {
+            console.log('cleanup')
+        }
+    }, [props.animation]);
 
     let component
 
@@ -101,7 +119,32 @@ function Board(props) {
             return innerBox
         })
     }
-    
+
+    const pieceAnimation = () => {
+
+        return (
+            <Animated.View
+                style={[styles.touch, 
+                    { 
+                        left: boxSize * 3, 
+                        top: boxSize * 3,
+                        transform: [
+                            { translateX: animate.x },
+                            { translateY: animate.y }
+                        ],
+                    }
+                ]}
+            >
+                <View style={[styles['box']]} >
+                    <Image
+                        style={[styles.image]}
+                        source={links[0].white}
+                    />
+                </View>
+            </Animated.View>
+        );
+    }
+
     return (
         <View style = {[styles.board, styles['flip'+ props.flip]]}>
             <View style= {styles.row} >
@@ -128,16 +171,21 @@ function Board(props) {
             <View style={styles.row} >
                 {component[7]}
             </View>
+            {pieceAnimation()}
         </View>
     )
 }
+
+const { width, height } = Dimensions.get("window");
+const boxSize = width / 8 - 1
 
 const styles = StyleSheet.create({
     board: {
         alignItems: 'center',
         justifyContent: 'center',
         borderColor: 'black',
-        borderWidth: 2
+        borderWidth: 2,
+        position: 'relative'
     },
 
     fliptrue: {
@@ -146,6 +194,23 @@ const styles = StyleSheet.create({
                 rotate: "180deg"
             }
         ],
+    },
+
+    touch: {
+        position: 'absolute',
+        height: boxSize,
+        width: boxSize
+    },
+
+    image: {
+        height: width / 8 - 3,
+        width: width / 8 - 3
+    },
+
+    box: {
+        flex: 1,
+        alignItems: "center",
+        justifyContent: "center"
     },
 
     row: {

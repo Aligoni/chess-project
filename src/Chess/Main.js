@@ -1,13 +1,13 @@
-import React from 'react'
+import React, { Component } from 'react'
 import { AsyncStorage } from 'react-native'
 import AppNavigator from './navigation/AppNavigator'
 import links from './routines/Links'
 import { Asset } from 'expo-asset';
 import { AppLoading } from 'expo';
 
-export default class App extends React.Component {
+export default class Main extends Component {
     state = {
-        isReady: false,
+        isReady: true,
     };
 
     render() {

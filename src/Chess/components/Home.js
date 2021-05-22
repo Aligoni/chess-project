@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { 
   AsyncStorage, 
+  Animated,
   Modal, 
   ImageBackground, 
   StyleSheet, 
@@ -28,6 +29,8 @@ export default function Home (props) {
     info: {},
   })
 
+  const [animate, setAnimate] = useState(new Animated.ValueXY({x: 60, y: 111}))
+
   const [progressTracker, setProgressTracker] = useState(0)
 
   useEffect(() => {
@@ -36,7 +39,11 @@ export default function Home (props) {
       return true 
     })
 
-    
+    Animated.timing(animate, {
+      toValue: { x: 111, y:0 },
+      duration: 5000,
+      useNativeDriver: true,
+    }).start();
 
     checkProgress()
     // loadAudio()
@@ -220,6 +227,21 @@ export default function Home (props) {
     >
       <View style={styles.container}>
         <StatusBar hidden={true} />
+        <Animated.View
+          style={[
+            styles.fadingContainer,
+            {
+              // Bind opacity to animated value
+              transform: [
+                {
+                  translateX: animate.y,
+                },
+              ],
+            }
+          ]}
+        >
+          <Text style={styles.diffText}>Fading View!</Text>
+        </Animated.View>
         <View style={styles.selection}>
           <TouchableOpacity
             style={styles.item}
@@ -290,7 +312,17 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: "center",
-    justifyContent: "center"
+    justifyContent: "center",
+    position: 'relative'
+  },
+
+  fadingContainer: {
+    position: 'absolute',
+    top: 60,
+    left: 60,
+    backgroundColor: 'red',
+    width: 60,
+    height: 60
   },
 
   selection: {},
