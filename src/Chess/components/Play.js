@@ -1,7 +1,9 @@
 import React, { Component } from 'react';
 import { AsyncStorage, 
     View, 
+    Animated,
     Modal, 
+    Image,
     ImageBackground, 
     StyleSheet, 
     Dimensions, 
@@ -67,6 +69,7 @@ export default class Play extends Component {
     aiTimer = 0
     aiSpeed = false
     undoTracker = false
+    startAnimation = false
     finished = false
     boardType = 3
     helper = true
@@ -238,6 +241,10 @@ export default class Play extends Component {
             },
             turn: "white",
             promotion: {},
+            animation: {
+                animate: new Animated.ValueXY({ x: 0, y: 0 }),
+                animating: false,
+            },
             paused: false,
             moveCounter: 0,
             thinking: false,
@@ -446,7 +453,14 @@ export default class Play extends Component {
                             }
                         } 
 
-                        this.playTouchSound()
+                        this.startAnimation = true
+                        // console.warn(data.info)
+                        position[this.toPosition(data.info.number).x][this.toPosition(data.info.number).y] = {
+                            piece: data.info.piece,
+                            player: data.info.player,
+                            style: 'prev',
+                            number: data.info.number
+                        }
                         this.setState(prevState => {
                             let taken = JSON.parse(JSON.stringify(this.state.taken))
 
@@ -475,11 +489,15 @@ export default class Play extends Component {
                                 selected: prevState.selected
                               },
 
+                                animation: {
+                                    animating: true,
+                                    animate: new Animated.ValueXY({ x: 0, y: 0 })
+                                },
                               moveList: {
                                   undo: prevState.moveList,
                                   move: {
-                                      from: this.state.selected.position.pos,
-                                      to: data.info.number,
+                                      from: this.toPosition(this.state.selected.position.pos),
+                                      to: this.toPosition(data.info.number),
                                       color: prevState.turn,
                                       type: 'capture',
                                       piece: prevState.selected.piece,
@@ -591,7 +609,13 @@ export default class Play extends Component {
                             } 
                         } 
 
-                        this.playTouchSound()
+                        this.startAnimation = true
+                        position[this.toPosition(data.info.number).x][this.toPosition(data.info.number).y] = {
+                            piece: 6,
+                            player: '',
+                            style: 'prev',
+                            number: data.info.number
+                        }
                         this.setState(prevState => {
 
                             kings['white'].check = false
@@ -613,11 +637,15 @@ export default class Play extends Component {
                                 selected: prevState.selected
                               },
 
+                                animation: {
+                                    animating: true,
+                                    animate: new Animated.ValueXY({ x: 0, y: 0 })
+                                },
                                 moveList: {
                                     undo: prevState.moveList,
                                     move: {
-                                        from: this.state.selected.position.pos,
-                                        to: data.info.number,
+                                        from: this.toPosition(this.state.selected.position.pos),
+                                        to: this.toPosition(data.info.number),
                                         color: prevState.turn,
                                         type: 'normal',
                                         piece: prevState.selected.piece,
@@ -893,7 +921,7 @@ export default class Play extends Component {
     }
 
     //-----------------------THIS METHOD IS CALLED AFTER EVERY STATE UPDATE------------------------//
-    componentDidUpdate() {
+    async componentDidUpdate() {
         if (this.kingOnCheck) this.checkKing()
 
         this.editProgress()
@@ -915,6 +943,54 @@ export default class Play extends Component {
             this.setState(prevState => {
                 return {
                     thinking: false
+                };
+            });
+        }
+        
+        if (this.startAnimation) {
+            // console.warn(this.state.moveList.move)
+            this.startAnimation = false
+
+            // let toX = (this.turn === 'white' && this.mode === 2)
+            let toX = true ? 
+                boxSize * (this.state.moveList.move.to.y - this.state.moveList.move.from.y) :
+                boxSize * (this.state.moveList.move.from.y - this.state.moveList.move.to.y)
+
+            let toY = true ? 
+                boxSize * (this.state.moveList.move.to.x - this.state.moveList.move.from.x) :
+                boxSize * (this.state.moveList.move.from.x - this.state.moveList.move.to.x)
+
+            Animated.timing(this.state.animation.animate, {
+                toValue: { 
+                    x: toX ,
+                    y: toY 
+                },
+                duration: this.aiSpeed ? 200 : 500,
+                useNativeDriver: true,
+            }).start(({ finished }) => {
+                this.kingOnCheck = true
+                this.setState(prevState => {
+                    return {
+                        animation: {
+                            animating: false,
+                        }
+                    };
+                });
+            });
+
+            await this.sleep(this.aiSpeed ? 100 : 300)
+            this.playTouchSound()
+            await this.sleep(this.aiSpeed ? 50 : 100)
+            this.setState(prevState => {
+                let final = this.state.position
+                final[this.state.moveList.move.to.x][this.state.moveList.move.to.y] = {
+                    piece: this.state.moveList.move.piece,
+                    player: this.state.moveList.move.color,
+                    style: 'prev',
+                    number: final[this.state.moveList.move.to.x][this.state.moveList.move.to.y].number
+                }
+                return {
+                    position: final
                 };
             });
         }
@@ -940,6 +1016,25 @@ export default class Play extends Component {
             this.kingOnCheck = true
 
             this.playTouchSound()
+
+            this.startAnimation = true
+
+            if (feedback.AIMove.type === 'capture') {
+                feedback.position[feedback.AIMove.to.x][feedback.AIMove.to.y] = {
+                    piece: feedback.AIMove.captured,
+                    player: this.swapColor(feedback.AIMove.color),
+                    style: 'prev',
+                    number: feedback.position[feedback.AIMove.to.x][feedback.AIMove.to.y].number
+                }
+            } else {
+                feedback.position[feedback.AIMove.to.x][feedback.AIMove.to.y] = {
+                    piece: 6,
+                    player: '',
+                    style: 'prev',
+                    number: feedback.position[feedback.AIMove.to.x][feedback.AIMove.to.y].number
+                }
+            }
+
             this.setState(prevState => {
                 return {
                     undo: {
@@ -962,6 +1057,10 @@ export default class Play extends Component {
                       undo: prevState.moveList,
                       move: feedback.AIMove
                   },
+                    animation: {
+                        animating: true,
+                        animate: new Animated.ValueXY({ x: 0, y: 0 })
+                    },
                   taken: feedback.taken,
                   moveCounter: feedback.AIMove.type === 'capture' ?
                     0: prevState.moveCounter + 1,
@@ -1006,12 +1105,33 @@ export default class Play extends Component {
                 thinking: false
               };
             });
-            this.kingOnCheck = true
 
-            console.log('Setting state');
-            this.playTouchSound()
+            // console.log('Setting state');
+            // console.warn(feedback.AIMove)
+            this.startAnimation = true
+
+            if (feedback.AIMove.type === 'capture') {
+                feedback.position[feedback.AIMove.to.x][feedback.AIMove.to.y] = {
+                    piece: feedback.AIMove.captured,
+                    player: this.swapColor(feedback.AIMove.color),
+                    style: 'prev',
+                    number: feedback.position[feedback.AIMove.to.x][feedback.AIMove.to.y].number
+                }
+            } else {
+                feedback.position[feedback.AIMove.to.x][feedback.AIMove.to.y] = {
+                    piece: 6,
+                    player: '',
+                    style: 'prev',
+                    number: feedback.position[feedback.AIMove.to.x][feedback.AIMove.to.y].number
+                }
+            }
+
             this.setState(prevState => {
                 return {
+                    animation: {
+                        animating: true,
+                        animate: new Animated.ValueXY({ x: 0, y: 0 })
+                    },
                   turn: prevState.turn === "white" ? "black" : "white",
                   moveList: {
                       undo: prevState.moveList,
@@ -1030,7 +1150,7 @@ export default class Play extends Component {
                   position: feedback.position
                 };
             })
-            console.log('done');
+            // console.log('done');
         }
     }
 
@@ -1626,7 +1746,7 @@ export default class Play extends Component {
             }
             this.aiTimer = setTimeout(() => {
                 this.mode3()
-            }, this.aiSpeed ? 411 : 1111)
+            }, this.aiSpeed ? 611 : 1111)
         }
         this.setState(prevState => {
             return {
@@ -1906,7 +2026,7 @@ export default class Play extends Component {
                 showProgress={false}
                 title={this.state.alert.title}
                 message={this.state.alert.message}
-                closeOnTouchOutside={false}
+                closeOnTouchOutside={true}
                 closeOnHardwareBackPress={false}
                 showCancelButton={true}
                 showConfirmButton={true}
@@ -1923,6 +2043,38 @@ export default class Play extends Component {
                     this.state.alert.onConfirm()
                 }}
             /> : null
+
+        let pieceAnimation = () => {
+            
+            if (!this.state.animation.animating) return null
+
+            return (
+                <Animated.View
+                    style={[styles.touch,
+                    {
+                        left: boxSize * (this.state.moveList.move.from.y) + 2,
+                        top: boxSize * (this.state.moveList.move.from.x) + 2,
+                        transform: [
+                            { translateX: this.state.animation.animate.x },
+                            { translateY: this.state.animation.animate.y }
+                        ],
+                    }
+                    ]}
+                >
+                    <View style={[styles['box']]} >
+                        <Image
+                            style={[
+                                styles.image, 
+                                styles['image' + this.mode],
+                                styles['image' + this.mode + this.turn],
+                                styles['image' + this.state.moveList.move.color + this.mode]
+                            ]}
+                            source={links[this.state.moveList.move.piece][this.state.moveList.move.color]}
+                        />
+                    </View>
+                </Animated.View>
+            );
+        }
 
         return (
           <ImageBackground
@@ -1951,7 +2103,7 @@ export default class Play extends Component {
                 disabled = {this.mode === 3 && !this.state.paused}
                 onPress={() => this.undoMove()}
               >
-                <Ionicons name="md-undo" size={height / 21} color={this.mode === 3 && !this.state.paused ? "black":"white"} />
+                <Ionicons name="md-arrow-undo-sharp" size={height / 21} color={this.mode === 3 && !this.state.paused ? "black":"white"} />
               </TouchableOpacity>
               {dynamic}
               {pause}
@@ -1960,7 +2112,7 @@ export default class Play extends Component {
             <View style={styles["container"]}>
               <Taken color={true} mode={this.mode} taken={this.state.taken} />
               <Turn turn={this.state.turn} pos={true}/>
-              <View style={styles.board}>
+              <View style={[styles.board, styles['flip'+ (this.turn === 'white' && this.mode === 2)]]}>
                 <Board
                   mode={this.mode}
                   boxes={this.state.boxes}
@@ -1970,6 +2122,7 @@ export default class Play extends Component {
                   helper={this.helper}
                   flip={this.turn === 'white' && this.mode === 2}
                 />
+                {pieceAnimation()}
               </View>
               <Turn turn={this.state.turn} pos={false}/>
               <Taken color={false} taken={this.state.taken} />
@@ -2003,7 +2156,9 @@ export default class Play extends Component {
 }
 
 //-------------------------------------------------STYLING----------------------------------------------//
-const { height, width } = Dimensions.get("window");
+const { width, height } = Dimensions.get("window");
+const boxSize = width / 8 - 1
+
 EStyleSheet.build({
   $rem: height / 150
 });
@@ -2027,6 +2182,60 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center"
   },
+
+    fliptrue: {
+        transform: [
+            {
+                rotate: "180deg"
+            }
+        ],
+    },
+
+    touch: {
+        position: 'absolute',
+        height: boxSize,
+        width: boxSize
+    },
+
+    image: {
+        height: width / 8 - 3,
+        width: width / 8 - 3
+    },
+
+    image3: {
+        transform: [
+            {
+                rotate: "180deg"
+            }
+        ]
+    },
+
+    image2black: {
+        transform: [
+            {
+                rotate: "180deg"
+            }
+        ]
+    },
+
+    imagewhite1: {
+        transform: [
+            {
+                rotate: "180deg"
+            }
+        ]
+    },
+
+    box: {
+        flex: 1,
+        alignItems: "center",
+        justifyContent: "center",
+        transform: [
+            {
+                rotate: "180deg"
+            }
+        ]
+    },
 
   menuBar: {
     height: height / 16,

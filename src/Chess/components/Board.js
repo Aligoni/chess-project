@@ -23,15 +23,15 @@ function Board(props) {
 
         }
 
-        Animated.timing(animate, {
-            toValue: { x: boxSize * 2, y: boxSize * 2},
-            duration: 500,
-            useNativeDriver: true,
-        }).start();
+        // Animated.timing(animate, {
+        //     toValue: { x: boxSize * 2, y: boxSize * 2},
+        //     duration: 500,
+        //     useNativeDriver: true,
+        // }).start();
 
 
         return function cleanup() {
-            console.log('cleanup')
+            console.log('board cleanup')
         }
     }, [props.animation]);
 
@@ -171,7 +171,7 @@ function Board(props) {
             <View style={styles.row} >
                 {component[7]}
             </View>
-            {pieceAnimation()}
+            {/* {pieceAnimation()} */}
         </View>
     )
 }
@@ -186,14 +186,6 @@ const styles = StyleSheet.create({
         borderColor: 'black',
         borderWidth: 2,
         position: 'relative'
-    },
-
-    fliptrue: {
-        transform: [
-            {
-                rotate: "180deg"
-            }
-        ],
     },
 
     touch: {

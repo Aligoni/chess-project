@@ -8,7 +8,7 @@ function Message (props) {
         message = "Welcome ,White plays first"
     }
 
-    props.thinking ? console.log('props') : null 
+    // props.thinking ? console.log('props') : null 
     return (
       <View style={styles.message}>
         <View style={styles.messageContainer}>
