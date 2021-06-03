@@ -449,7 +449,7 @@ function toBig(x, y) {
     return 8 * x + y
 }
 
-function refactorName(piece) {
+function refactorName(piece) { 
     if (piece === 0) {
         return 'p'
     }

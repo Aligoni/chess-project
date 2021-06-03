@@ -7,12 +7,12 @@ import {
     Dimensions, 
     StyleSheet, 
     ImageBackground, 
-    AsyncStorage, 
     ToastAndroid, 
     ScrollView, 
     BackHandler, 
     Platform, 
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
 import Board from './Board'
 import links from "../routines/Links";

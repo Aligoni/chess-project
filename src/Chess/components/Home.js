@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { 
-  AsyncStorage, 
+import {  
   Animated,
   Modal, 
   ImageBackground, 
@@ -12,6 +11,7 @@ import {
   BackHandler, 
   Dimensions 
 } from 'react-native'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
 import links from "../routines/Links";
 import { Ionicons } from "@expo/vector-icons";

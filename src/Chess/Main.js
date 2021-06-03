@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
-import { AsyncStorage } from 'react-native'
+import { ImageBackground } from 'react-native'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import AppNavigator from './navigation/AppNavigator'
 import links from './routines/Links'
 import { Asset } from 'expo-asset';
@@ -7,17 +8,30 @@ import { AppLoading } from 'expo';
 
 export default class Main extends Component {
     state = {
-        isReady: true,
+        isReady: false,
     };
+
+    componentDidMount() {
+        this._cacheResourcesAsync().then(() => {
+            this.setState({isReady: true})
+        })
+    }
 
     render() {
         if (!this.state.isReady) {
             return (
-                <AppLoading
-                    startAsync={this._cacheResourcesAsync}
-                    onFinish={() => this.setState({ isReady: true })}
-                    onError={console.warn}
-                />
+                // <AppLoading
+                //     startAsync={this._cacheResourcesAsync}
+                //     onFinish={() => this.setState({ isReady: true })}
+                //     onError={console.warn}
+                // />
+                <ImageBackground
+                    resizeMode={"stretch"}
+                    style={{ flex: 1 }}
+                    source={links[7][0]}
+                >
+
+                </ImageBackground>
             );
         }
 
@@ -70,7 +84,7 @@ export default class Main extends Component {
             load = await AsyncStorage.getItem('profile')
         } catch (error) {
             console.log(error)
-            return
+            // return
         }
 
         let feedback

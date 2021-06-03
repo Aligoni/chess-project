@@ -5,12 +5,12 @@ import links from "../routines/Links";
 export default function Taken(props) {
 
     let taken = null
-    if (props.color) {
+    if (!props.color) {
         taken = props.taken.black.map(taken => {
           return (
             <Image
               key={Math.random()}
-              style={[styles.image, styles["i"+ props.mode + taken.player]]}
+              style={[styles.image, styles[taken.player]]}
               source={links[taken.piece][taken.player]}
               alt="white"
             />
@@ -21,7 +21,7 @@ export default function Taken(props) {
           return (
             <Image
               key={Math.random()}
-              style={[styles.image, styles[taken.player]]}
+              style={[styles.image, styles["i"+ props.mode + taken.player]]}
               source={links[taken.piece][taken.player]}
               alt="white"
             />
@@ -47,7 +47,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
 
-  i1black: {
+  i1white: {
     transform: [
       {
         rotate: "180deg"

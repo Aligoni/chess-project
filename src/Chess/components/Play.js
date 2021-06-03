@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { AsyncStorage, 
+import {
     View, 
     Animated,
     Modal, 
@@ -14,6 +14,7 @@ import { AsyncStorage,
     Platform, 
     TouchableOpacity 
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
 import { activateKeepAwake, deactivateKeepAwake } from 'expo-keep-awake';
 import { Ionicons, Foundation } from '@expo/vector-icons';
@@ -762,9 +763,14 @@ export default class Play extends Component {
                         castling[this.state.selected.player].kSide = castling[this.state.selected.player].qSide = true
 
                         this.pathUpdateNeeded = false
-                        this.kingOnCheck = true
 
-                        this.playTouchSound()
+                        this.startAnimation = true
+                        position[this.toPosition(data.info.number).x][this.toPosition(data.info.number).y] = {
+                            piece: 6,
+                            player: '',
+                            style: 'prev',
+                            number: data.info.number
+                        }
                         this.setState(prevState => {
 
                             kings['white'].check = false
@@ -786,11 +792,15 @@ export default class Play extends Component {
                                 selected: prevState.selected
                               },
 
+                                animation: {
+                                    animating: true,
+                                    animate: new Animated.ValueXY({ x: 0, y: 0 })
+                                },
                               moveList: {
                                   undo: prevState.moveList,
                                   move: {
-                                      from: this.state.selected.position.pos,
-                                      to: data.info.number,
+                                      from: this.toPosition(this.state.selected.position.pos),
+                                      to: this.toPosition(data.info.number),
                                       color: prevState.turn,
                                       type: this.toPosition(data.info.number).y === 6 ? 'kSide' : 'qSide',
                                       piece: prevState.selected.piece,
@@ -914,6 +924,8 @@ export default class Play extends Component {
         this.backHandler.remove()
 
         deactivateKeepAwake()
+
+        console.log('Play cleanup')
         
         if (this.aiTimer) {
             clearTimeout(this.aiTimer)
@@ -978,7 +990,7 @@ export default class Play extends Component {
                 });
             });
 
-            await this.sleep(this.aiSpeed ? 100 : 300)
+            await this.sleep(this.aiSpeed ? 50 : 300)
             this.playTouchSound()
             await this.sleep(this.aiSpeed ? 50 : 100)
             this.setState(prevState => {
@@ -1015,7 +1027,7 @@ export default class Play extends Component {
 
             this.kingOnCheck = true
 
-            this.playTouchSound()
+            // this.playTouchSound()
 
             this.startAnimation = true
 
@@ -1089,7 +1101,7 @@ export default class Play extends Component {
             this.state.promotion.player == undefined) {
 
             this.setState(prevState => {
-                console.log('thinking');
+                // console.log('thinking');
               return {
                 thinking: true
               };
