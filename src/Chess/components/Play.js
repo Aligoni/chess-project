@@ -925,7 +925,7 @@ export default class Play extends Component {
 
         deactivateKeepAwake()
 
-        console.log('Play cleanup')
+        // console.log('Play cleanup')
         
         if (this.aiTimer) {
             clearTimeout(this.aiTimer)
@@ -943,12 +943,6 @@ export default class Play extends Component {
         if (this.checkCounter) this.fiftyMovesCounter()
 
         if (this.pathUpdateNeeded) this.setPath()
-
-        if (this.mode === 2 && !this.state.thinking) {
-            this.aiTimer = setTimeout(() => {
-              this.mode2();
-            }, 111);
-        }
 
         if (this.restartGame) {
             this.restartGame = false
@@ -993,6 +987,13 @@ export default class Play extends Component {
             await this.sleep(this.aiSpeed ? 50 : 300)
             this.playTouchSound()
             await this.sleep(this.aiSpeed ? 50 : 100)
+
+            if (this.mode === 2 && !this.state.thinking) {
+                this.aiTimer = setTimeout(() => {
+                    this.mode2();
+                }, 111);
+            }
+
             this.setState(prevState => {
                 let final = this.state.position
                 final[this.state.moveList.move.to.x][this.state.moveList.move.to.y] = {
@@ -1107,7 +1108,7 @@ export default class Play extends Component {
               };
             });
             console.log('mode 2');
-            await this.sleep(1111)
+            await this.sleep(111)
             let start = new Date().getTime()
             let feedback = this.makeMove()
             console.log('Finished searching in ' + (new Date().getTime() - start))
@@ -1187,6 +1188,7 @@ export default class Play extends Component {
                 this.state.castling[this.state.turn]
             ))
             this.saveGame()
+            return
         }
 
         let kings = JSON.parse(JSON.stringify(this.state.kings))
@@ -1272,9 +1274,9 @@ export default class Play extends Component {
 
         if (AIMove.captured === 5) {
             if (AIMove.to.y === 0) {
-                castling[this.swapColor(AIMove.color)].kSide = true
-            } else if (AIMove.to.y === 7) {
                 castling[this.swapColor(AIMove.color)].qSide = true
+            } else if (AIMove.to.y === 7) {
+                castling[this.swapColor(AIMove.color)].kSide = true
             }
         }
 
@@ -1371,9 +1373,11 @@ export default class Play extends Component {
         }
         let endGame = this.state.endGame
         let nextLevel = this.state.nextLevel
+        let thinking = this.state.thinking
 
         if (validMoves.length === 0) {
             this.finished = true
+            thinking = false
             if (this.aiTimer) {
                 clearTimeout(this.aiTimer)
                 this.aiTimer = 0
@@ -1400,6 +1404,7 @@ export default class Play extends Component {
 
         this.setState(prevState => {
             return {
+                thinking,
                 kings,
                 nextLevel,
                 position,
@@ -1437,6 +1442,7 @@ export default class Play extends Component {
                     searching = false
                     this.finished = true
                     let endGame = this.state.endGame
+                    let thinking = this.state.thinking
                     let playable = this.state.playable
                     console.log("stalemate")
                     if (this.aiTimer) {
@@ -1452,6 +1458,7 @@ export default class Play extends Component {
                     this.setState({
                         playable,
                         endGame,
+                        thinking,
                     })
 
                     i = 6
@@ -1477,6 +1484,7 @@ export default class Play extends Component {
             this.finished = true
             let endGame = this.state.endGame
             let playable = this.state.playable
+            let thinking = this.state.thinking
             console.log("stalemate")
             if (this.aiTimer) {
                 clearTimeout(this.aiTimer)
@@ -1490,6 +1498,7 @@ export default class Play extends Component {
 
             this.setState({
                 playable,
+                thinking,
                 endGame,
             })
         }
@@ -1523,13 +1532,15 @@ export default class Play extends Component {
     }
 
     //---------------------------------SHOWS HINT FOR NEXT MOVE-------------------------------------//
-    hint = () => {
+    hint = async () => {
         if (this.state.playable) {
             this.setState(prevState => {
                 return {
                     thinking: true
                 };
             });
+
+            await this.sleep(111)
 
             const AIMove = AI(
               this.state.turn,

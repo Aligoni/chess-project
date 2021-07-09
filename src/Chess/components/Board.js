@@ -31,7 +31,7 @@ function Board(props) {
 
 
         return function cleanup() {
-            console.log('board cleanup')
+            // console.log('board cleanup')
         }
     }, [props.animation]);
 
