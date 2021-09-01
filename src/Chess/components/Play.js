@@ -270,7 +270,7 @@ export default class Play extends Component {
         };
     }
 
-    //--------------------------------PLAYER CLICKS HANDLER----------------------------------//
+    //------------------------------------PLAYER CLICKS HANDLER------------------------------------//
     handleClick = data => {
         if (this.state.playable ) {
             if (!this.state.started) {
@@ -875,7 +875,7 @@ export default class Play extends Component {
         }
     }
 
-    //-----------------------------------PIECE PROMOTION HANDLER---------------------------------//
+    //------------------------------------PIECE PROMOTION HANDLER----------------------------------//
     handlePromotion = piece => {
         this.kingOnCheck = true
 
@@ -902,7 +902,7 @@ export default class Play extends Component {
         })
     }
 
-    //------------------------------WHEN THE GAME IS LOADED-------------------------------//
+    //-----------------------------------WHEN THE GAME IS LOADED-----------------------------------//
     componentDidMount() {
         this.backHandler = BackHandler.addEventListener('hardwareBackPress', () => { this.handleBack(); return true })
 
@@ -919,7 +919,7 @@ export default class Play extends Component {
         if (this.mode === 3) this.aiTimer = setTimeout(() => { this.mode3() }, this.aiSpeed ? 411: 1111);
     }
 
-    //--------------------------------WHEN THE GAME IS BEING CLOESD------------------------------//
+    //--------------------------------WHEN THE GAME IS BEING CLOESD--------------------------------//
     componentWillUnmount() {
         this.backHandler.remove()
 
@@ -932,7 +932,7 @@ export default class Play extends Component {
         }
     }
 
-    //-----------------------THIS METHOD IS CALLED AFTER EVERY STATE UPDATE------------------------//
+    //-------------------------THIS METHOD IS CALLED AFTER EVERY STATE UPDATE------------------------//
     async componentDidUpdate() {
         if (this.kingOnCheck) this.checkKing()
 
@@ -1009,7 +1009,7 @@ export default class Play extends Component {
         }
     }
 
-    //---------------------------METHOD TO HANDLE AI VERSUS AI MOVEMENTS---------------------------//
+    //-----------------------------METHOD TO HANDLE AI VERSUS AI MOVEMENTS---------------------------//
     mode3 = () => {
         if (!this.state.menu && this.state.playable) {
             this.setState(prevState => {
@@ -1093,7 +1093,7 @@ export default class Play extends Component {
         }
     }
     
-    //-----------------------------METHOD TO HANDLE AI VERSUS USER MOVEMENTS----------------------//
+    //-----------------------------METHOD TO HANDLE AI VERSUS USER MOVEMENTS------------------------//
     mode2 = async () => {
         if (!this.state.menu && 
             this.state.turn === this.turn && 
@@ -1119,8 +1119,8 @@ export default class Play extends Component {
               };
             });
 
-            // console.log('Setting state');
-            // console.warn(feedback.AIMove)
+            if (feedback == undefined) return
+
             this.startAnimation = true
 
             if (feedback.AIMove.type === 'capture') {
@@ -1167,7 +1167,7 @@ export default class Play extends Component {
         }
     }
 
-    //----------------------------FUNCTION TO RECORD AI MOVEMENTS------------------------------//
+    //---------------------------------FUNCTION TO RECORD AI MOVEMENTS-------------------------------//
     makeMove = (isAI) => {
         const AIMove = AI(
             this.state.turn,
@@ -1178,7 +1178,7 @@ export default class Play extends Component {
             this.aiSpeed ? false : isAI
         )
 
-        if (AIMove.from === undefined) {
+        if (AIMove === undefined) {
             console.log('----------------------------------------------------------------------')
             console.log(AllMoves(
                 this.state.turn,
@@ -1299,6 +1299,7 @@ export default class Play extends Component {
         }
     }
 
+    //---------------------------------FUNCTION TO FORCE ASYNCHRONOUS---------------------------------/
     sleep(ms) {
         return new Promise(resolve => setTimeout(resolve, ms))
     }
@@ -1473,7 +1474,6 @@ export default class Play extends Component {
             }
         }
     }
-
 
     //---------------------------------CHECKS FOR FIFTY MOVES RULE---------------------------------//
     fiftyMovesCounter = () => {
@@ -1842,12 +1842,24 @@ export default class Play extends Component {
             undoTracker: this.undoTracker
         }))
 
+        let lastGame = {
+            status: true,
+            mode: this.mode,
+            difficulty: this.difficulty
+        }
+
+        await AsyncStorage.setItem('lastGame', JSON.stringify(lastGame))
+
         if (extra) this.endGameMainMenu(true)
     }
 
     removeSavedGame = async () => {
 
         await AsyncStorage.setItem('saveGame' + this.mode + this.difficulty, "")
+        let lastGame = {
+            status: false
+        }
+        await AsyncStorage.setItem('lastGame', JSON.stringify(lastGame))
     }
 
     //--------------------------CHECKS FOR SAVED GAME DURING INITIALIZATION-------------------------//
@@ -2226,7 +2238,7 @@ const styles = StyleSheet.create({
     },
 
     image3: {
-        transform: [
+        transform: [ 
             {
                 rotate: "180deg"
             }

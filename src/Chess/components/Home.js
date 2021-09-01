@@ -14,8 +14,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
 import links from "../routines/Links";
-import { Ionicons } from "@expo/vector-icons";
-import { Foundation } from "@expo/vector-icons";
+import { Ionicons, FontAwesome5 } from "@expo/vector-icons";
 import { Audio } from 'expo-av'
 import EStyleSheet from "react-native-extended-stylesheet";
 
@@ -30,6 +29,7 @@ export default function Home (props) {
   })
 
   const [progressTracker, setProgressTracker] = useState(0)
+  const [lastGameTracker, setLastGameTracker] = useState({status: false})
 
   useEffect(() => {
     const backHandler = BackHandler.addEventListener("hardwareBackPress", () => { 
@@ -38,46 +38,30 @@ export default function Home (props) {
     })
 
     checkProgress()
-    // loadAudio()
-
+    const navigationUnsubscribe = navigation.addListener('focus', () => {
+      checkProgress()
+    })
+    
     return function cleanup() {
       console.log('cleanup')
-      // backgroundMusic.stopAsync()
+      navigationUnsubscribe()
       backHandler.remove()
     }
   }, []);
 
   const backgroundMusic = new Audio.Sound()
 
-  const setItem = async yes => {
-    await AsyncStorage.setItem('saveGame12', '')
-    await AsyncStorage.setItem('saveGame20', '')
-    await AsyncStorage.setItem('saveGame21', '')
-    await AsyncStorage.setItem('saveGame22', '')
-    await AsyncStorage.setItem('saveGame23', '')
-    await AsyncStorage.setItem('saveGame24', '')
-    await AsyncStorage.setItem('saveGame32', '')
-  }
-
   const checkProgress = async () => {
     let feedback = JSON.parse(await AsyncStorage.getItem('progress'))
     setProgressTracker(feedback.vsAI)
+    let lastGame = JSON.parse(await AsyncStorage.getItem('lastGame'))
+    setLastGameTracker(lastGame)
   }
 
-  checkProgress()
+  // checkProgress()
 
   const backActionHandler = () => {
     state.item != 3 ? setState({ item: 3, status: true }) : null
-  }
-
-  const loadAudio = async () => {
-    try {
-      await backgroundMusic.loadAsync(require("../../../assets/audio/backgroundMusic1.mp3"))
-      await backgroundMusic.setIsLoopingAsync(true);
-      await backgroundMusic.playAsync();
-    } catch (error) {
-      console.log(error)
-    }
   }
 
   const cancelExit = () => {
@@ -127,9 +111,24 @@ export default function Home (props) {
   }
 
   const newGame = async (mode, diff, text) => {
+    let lastGame = {
+      status: false
+    }
+    await AsyncStorage.setItem(JSON.stringify(lastGame))
     await AsyncStorage.setItem('saveGame' + mode + diff, '')
     setState({ item: 0, status: false });
     navigate(mode, diff, text)
+  }
+
+  const howToPlay = () => {
+    navigation.navigate("HowToPlay")
+  }
+
+  const continueLastGame = () => {
+    navigate(lastGameTracker.mode, lastGameTracker.difficulty, 
+      lastGameTracker.mode === 1 ? 'Vs Player' :
+        lastGameTracker.mode == 2 ? `${list[lastGameTracker.difficulty]}` : 'AI Vs AI'
+      )
   }
 
   const continueGame = state.status && state.item == 1 ? (
@@ -195,7 +194,7 @@ export default function Home (props) {
     );
   });
 
-  let selectDifficulty = state.status && state.item == 2 ? (
+  const selectDifficulty = state.status && state.item == 2 ? (
     <Modal animationType="fade" transparent={true} visible={true}>
       <View style={styles.pVcContainer}>
         <View style={styles.pVc}>
@@ -211,15 +210,42 @@ export default function Home (props) {
     </Modal>
   ) : null;
 
+  const lastGameButton = lastGameTracker.status && (
+    <TouchableOpacity
+      style={styles.itemOld}
+      onPress={() => continueLastGame()}
+    >
+      <Text style={eStyles.itemText}>Continue Last Game</Text>
+      <Text style={[eStyles.itemText, {color: 'red'}]}>{lastGameTracker.mode === 1 ? 'Player vs Player' :
+      lastGameTracker.mode == 2 ? `Player Vs AI: ${list[lastGameTracker.difficulty]}`: 'Computer Vs Computer'}</Text>
+    </TouchableOpacity>
+  ) 
+
   return (
     <ImageBackground
       resizeMode={"stretch"}
       style={{ flex: 1 }}
-      source={links[7][0]}
+      source={links[7][7]}
     >
       <View style={styles.container}>
         <StatusBar hidden={true} />
+        <View style={{flexDirection: 'row', alignItems: 'flex-start'}}>
+          <Text style={[eStyles.titleText, {marginRight: 8}]}>
+            CHESS
+          </Text>
+          <FontAwesome5 name='chess' size={50} color='blue' />
+        </View>
+        <Text style={[eStyles.titleText, {fontSize: 20, color: 'white', marginBottom: 20}]}>
+          for beginners
+        </Text>
+        {lastGameButton}
         <View style={styles.selection}>
+          <TouchableOpacity
+            style={styles.item}
+            onPress={() => howToPlay()}
+          >
+            <Text style={eStyles.itemText}>How To Play</Text>
+          </TouchableOpacity>
           <TouchableOpacity
             style={styles.item}
             onPress={() => checkSavedGame(1, 2,'Vs Player')}
@@ -235,21 +261,12 @@ export default function Home (props) {
           >
             <Text style={eStyles.itemText}>Computer vs Computer</Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.item}
-            onPress={() => getItem("Loading")}
-          >
-            <Text style={eStyles.itemText}>Get Item</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.item}
-            onPress={() => setItem("Loading")}
-          >
-            <Text style={eStyles.itemText}>Set Item</Text>
-          </TouchableOpacity>
         </View>
         <TouchableOpacity style={styles.settings} onPress={() => openSettings()}>
           <Ionicons name="md-settings" size={41} color="blue" />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.quit} onPress={() => backActionHandler()}>
+          <Ionicons name="md-exit" size={41} color="blue" />
         </TouchableOpacity>
       </View>
       {selectDifficulty}
@@ -268,7 +285,8 @@ const eStyles = EStyleSheet.create({
   itemText: {
     color: "white",
     fontWeight: "700",
-    fontSize: "4rem"
+    fontSize: "4rem",
+    textAlign: 'center',
   },
 
   diffText: {
@@ -282,6 +300,13 @@ const eStyles = EStyleSheet.create({
     color: "white",
     fontWeight: "900",
     fontSize: "4rem"
+  },
+
+  titleText: {
+    fontSize: '10rem',
+    fontWeight: 'bold',
+    color: 'red',
+    textAlign: 'center',
   }
 });
 
@@ -290,7 +315,8 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    position: 'relative'
+    position: 'relative',
+    // backgroundColor: 'rgba(0,0,0,0.5)'
   },
 
   fadingContainer: {
@@ -302,17 +328,37 @@ const styles = StyleSheet.create({
     height: 60
   },
 
-  selection: {},
+  selection: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center'
+  },
 
-  item: {
-    width: width * 0.8,
+  itemOld: {
+    width: width * 0.96,
     paddingTop: height / 111,
     paddingBottom: height / 111,
-    backgroundColor: "rgba(0, 101, 241, 0.907)",
+    backgroundColor: "rgba(0, 101, 241, 0.8)",
+    borderColor: 'blue',
+    // borderWidth: 2,
     borderRadius: height / 75,
     alignItems: "center",
     justifyContent: "center",
     margin: height / 61,
+  },
+
+  item: {
+    width: width * 0.46,
+    // paddingTop: height / 111,
+    // paddingBottom: height / 111,
+    padding: 10,
+    height: width * 0.45,
+    backgroundColor: "rgba(0, 101, 241, 0.8)",
+    borderRadius: height / 100,
+    alignItems: "center",
+    justifyContent: "center",
+    // marginVertical: height / 61,
+    margin: width * 0.02,
   },
 
   pVcContainer: {
@@ -400,6 +446,11 @@ const styles = StyleSheet.create({
     top: 9,
     left: 6,
     padding: 5,
-    backgroundColor: "#00000070"
+  },
+
+  quit: {
+    position: 'absolute',
+    bottom: 9,
+    right: 6,
   }
 });

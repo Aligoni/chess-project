@@ -45,6 +45,7 @@ const links = [
     require("../../../assets/picture5.png"),
     require("../../../assets/picture3.png"),
     require("../../../assets/background.jpg"),
+    require("../../../assets/landing-background.jpg")
   ]
 ];
 

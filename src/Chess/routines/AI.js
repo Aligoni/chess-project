@@ -7,6 +7,12 @@ let kings = null
 let castling = null
 let undoHolder = []
 
+let depthCounter = 0
+
+function initCounter() { depthCounter = 0 }
+function addCounter() { depthCounter++ }
+function getCounter() { return depthCounter }
+
 export function AI(colorIn, positionIn, kingsIn, castlingIn, depth, isAI) {
 
     position = positionIn.map(value => {
@@ -26,9 +32,11 @@ export function AI(colorIn, positionIn, kingsIn, castlingIn, depth, isAI) {
     castling = JSON.parse(JSON.stringify(castlingIn))
 
     if (isAI) depth += Math.floor(Math.random() * 2);
-    
-    const move = minimaxRoot(depth, color === 'black')
 
+    initCounter()
+    const move = minimaxRoot(depth, color === 'black')
+    console.log(getCounter())
+    
     return move
 }
 
@@ -124,6 +132,8 @@ let minimaxRoot = function (depth, isMaximisingPlayer) {
 };
 
 let minimax = function (depth, alpha, beta, isMaximisingPlayer) {
+    addCounter()
+
     if (depth === 0) {
         return -evaluateBoard();
     }

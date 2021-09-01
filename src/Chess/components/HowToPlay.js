@@ -1,16 +1,16 @@
 import React, { Component } from 'react';
-import { 
-    View, 
-    Text, 
-    Modal, 
-    TouchableOpacity, 
-    Dimensions, 
-    StyleSheet, 
-    ImageBackground, 
-    ToastAndroid, 
-    ScrollView, 
-    BackHandler, 
-    Platform, 
+import {
+    View,
+    Text,
+    Modal,
+    TouchableOpacity,
+    Dimensions,
+    StyleSheet,
+    ImageBackground,
+    ToastAndroid,
+    ScrollView,
+    BackHandler,
+    Platform,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
@@ -20,9 +20,9 @@ import EStyleSheet from "react-native-extended-stylesheet";
 import { Audio } from 'expo-av'
 import AwesomeAlert from 'react-native-awesome-alerts';
 
-export default class Settings extends Component {
+export default class HowToPlay extends Component {
     backHandler = null
-    
+
     constructor(props) {
         super(props);
 
@@ -82,7 +82,7 @@ export default class Settings extends Component {
         let settings = this.state.settings
         settings.playAs = playAs
         this.setState(prevState => {
-            return { 
+            return {
                 settings,
                 save: true,
             }
@@ -167,10 +167,6 @@ export default class Settings extends Component {
 
     clearGames = async () => {
         console.log('clear')
-        let lastGame = {
-            status: false
-        }
-        await AsyncStorage.setItem('lastGame', JSON.stringify(lastGame))
         await AsyncStorage.setItem('saveGame12', '')
         await AsyncStorage.setItem('saveGame20', '')
         await AsyncStorage.setItem('saveGame21', '')
@@ -242,7 +238,7 @@ export default class Settings extends Component {
                     <View style={styles.pVcContainer}>
                         <View style={styles.pVc}>
                             <Text style={eStyles.title}>Preview</Text>
-                            <Board type={this.state.boardSelected} preview={this.state.preview}/>
+                            <Board type={this.state.boardSelected} preview={this.state.preview} />
                             <View style={styles.bottom}>
                                 <TouchableOpacity
                                     style={[styles.close]}
@@ -263,7 +259,7 @@ export default class Settings extends Component {
             </Modal>
         ) : null;
 
-        let alert = this.state.alert.status ? 
+        let alert = this.state.alert.status ?
             <AwesomeAlert
                 show={true}
                 showProgress={false}
@@ -330,7 +326,7 @@ export default class Settings extends Component {
                         <Text style={eStyles.itemText}>Play As</Text>
                         <View style={styles.options}>
                             <TouchableOpacity
-                                style={[styles.option, styles['option' + this.state.alert.status], styles['white'+ this.state.settings.playAs]]}
+                                style={[styles.option, styles['option' + this.state.alert.status], styles['white' + this.state.settings.playAs]]}
                                 onPress={() => { this.changePlay('white') }}
                             >
                                 <Text style={eStyles.diffText}>White</Text>
@@ -389,7 +385,7 @@ export default class Settings extends Component {
                     </View>
                     <View style={[styles.bottom, styles.bottom1]}>
                         <TouchableOpacity
-                            style={[styles.close, styles['option' + this.state.alert.status], styles['save'+ this.state.save]]}
+                            style={[styles.close, styles['option' + this.state.alert.status], styles['save' + this.state.save]]}
                             disabled={!this.state.save}
                             onPress={() => { this.saveSettings() }}
                         >
@@ -429,7 +425,7 @@ const eStyles = EStyleSheet.create({
         fontSize: "4.5rem",
         marginBottom: 5,
     },
-    
+
     title: {
         color: "#F3F3F3",
         fontWeight: "500",
@@ -441,12 +437,13 @@ const eStyles = EStyleSheet.create({
 const styles = StyleSheet.create({
     settingsContainer: {
         flex: 1,
-        alignItems: 'center'
+        alignItems: 'center',
+        display: 'none',
     },
 
     item: {
         flex: 1,
-        alignItems: 'center', 
+        alignItems: 'center',
         justifyContent: 'center',
     },
 
