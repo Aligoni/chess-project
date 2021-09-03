@@ -6,7 +6,7 @@ import links from './routines/Links'
 import { Asset } from 'expo-asset';
 import { AppLoading } from 'expo';
 
-const LATEST_VERSION = 4
+const LATEST_VERSION = 5
 
 export default class Main extends Component {
     state = {
@@ -59,7 +59,8 @@ export default class Main extends Component {
             }
 
             let progress = {
-                vsAI: 3
+                vsAI: 3,
+                lessons: 1
             }
 
             let lastGame = {

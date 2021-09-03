@@ -6,6 +6,7 @@ import Home from '../components/Home'
 import HowToPlay from '../components/HowToPlay'
 import Settings from '../components/Settings'
 import Loading from '../components/Loading'
+import Lesson from '../components/Lesson'
 
 const Stack = createStackNavigator()
 
@@ -18,6 +19,7 @@ export default function AppNavigator() {
           <Stack.Screen name='HowToPlay' component={HowToPlay} />
           <Stack.Screen name="Loading" component={Loading} />
           <Stack.Screen name="Settings" component={Settings} />
+          <Stack.Screen name='Lesson' component={Lesson} />
         </Stack.Navigator>
       </NavigationContainer>
     );

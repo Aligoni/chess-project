@@ -114,7 +114,7 @@ export default function Home (props) {
     let lastGame = {
       status: false
     }
-    await AsyncStorage.setItem(JSON.stringify(lastGame))
+    await AsyncStorage.setItem('lastGame', JSON.stringify(lastGame))
     await AsyncStorage.setItem('saveGame' + mode + diff, '')
     setState({ item: 0, status: false });
     navigate(mode, diff, text)

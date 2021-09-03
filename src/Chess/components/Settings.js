@@ -291,7 +291,7 @@ export default class Settings extends Component {
             <ImageBackground
                 resizeMode={"stretch"}
                 style={{ flex: 1 }}
-                source={links[7][5]}
+                source={links[7][7]}
             >
                 <View style={styles.settingsContainer} >
                     <Text style={[styles.bottom1, eStyles.title]}>SETTINGS</Text>
